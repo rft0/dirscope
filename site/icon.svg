@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#34406a"/>
+      <stop offset="1" stop-color="#141826"/>
+    </linearGradient>
+    <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.14"/>
+      <stop offset="0.5" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="amber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd166"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- app tile -->
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#tile)"/>
+  <rect x="8" y="8" width="240" height="240" rx="56" fill="url(#shine)"/>
+  <rect x="9" y="9" width="238" height="238" rx="55" fill="none" stroke="#ffffff" stroke-opacity="0.08" stroke-width="2"/>
+
+  <!-- disk usage donut: circumference of r=64 is 402.12; segments start at 12 o'clock -->
+  <g transform="rotate(-90 128 128)" fill="none">
+    <!-- the biggest slice (200 deg) is thicker so it stands out -->
+    <circle cx="128" cy="128" r="66" stroke="url(#amber)" stroke-width="46"
+            stroke-dasharray="223.9 500" stroke-dashoffset="0" transform="rotate(4 128 128)"/>
+    <circle cx="128" cy="128" r="64" stroke="#f26d6d" stroke-width="34"
+            stroke-dasharray="87.1 500" stroke-dashoffset="-227.9"/>
+    <circle cx="128" cy="128" r="64" stroke="#34c9c4" stroke-width="34"
+            stroke-dasharray="49 500" stroke-dashoffset="-322.2"/>
+    <circle cx="128" cy="128" r="64" stroke="#6b8cff" stroke-width="34"
+            stroke-dasharray="21 500" stroke-dashoffset="-378.2"/>
+  </g>
+
+  <!-- folder in the hole -->
+  <path fill="#f4f6fb" d="M104 113.5a4.5 4.5 0 0 1 4.5-4.5h12.2l5 5.5h21.8a4.5 4.5 0 0 1 4.5 4.5v21.5a4.5 4.5 0 0 1-4.5 4.5h-39a4.5 4.5 0 0 1-4.5-4.5z"/>
+</svg>

@@ -102,7 +102,8 @@ impl DirScope {
     /// Asks whether to restart elevated, since without admin rights many
     /// system folders can't be read (sizes come out low) or deleted.
     fn offer_elevation(&mut self, window: &mut Window, cx: &mut Context<Self>) {
-        if self.elevated {
+        // DIRSCOPE_NO_ADMIN_PROMPT=1 skips the dialog (scripted runs, screenshots).
+        if self.elevated || std::env::var_os("DIRSCOPE_NO_ADMIN_PROMPT").is_some() {
             return;
         }
         let answer = window.prompt(
@@ -248,11 +249,19 @@ impl DirScope {
         }
     }
 
+    /// Rescans the current folder, or the first drive (C:\) if nothing was scanned yet.
     fn rescan(&mut self, cx: &mut Context<Self>) {
-        if let Some(tree) = &self.tree {
-            let path = tree.root_path.clone();
-            self.start_scan(path, cx);
+        if self.scanning.is_some() {
+            return;
         }
+        let path = match &self.tree {
+            Some(tree) => tree.root_path.clone(),
+            None => match self.drives.first() {
+                Some(drive) => drive.clone(),
+                None => return,
+            },
+        };
+        self.start_scan(path, cx);
     }
 
     // ---- tree navigation -------------------------------------------------
@@ -517,8 +526,9 @@ impl DirScope {
             }))
             .child(div().w(px(12.)))
             .child(
-                button("rescan", Icon::Refresh, "Rescan (F5)", has_tree && !scanning, PANEL)
-                    .when(has_tree && !scanning, |b| {
+                // With nothing scanned yet, Rescan scans the first drive (C:\).
+                button("rescan", Icon::Refresh, "Rescan (F5)", !scanning, PANEL)
+                    .when(!scanning, |b| {
                         b.on_click(cx.listener(|this, _, _, cx| this.rescan(cx)))
                     }),
             )
@@ -732,10 +742,14 @@ impl DirScope {
             return placeholder(scan_progress_text(s)).into_any_element();
         }
         if self.tree.is_none() {
-            return placeholder(
-                "Choose a folder (Ctrl+O) or a drive above.\n\
-                 ↑/↓ move · ←/→ collapse/expand · Enter toggle · Del delete · F5 rescan",
-            )
+            let drive = self
+                .drives
+                .first()
+                .map(|d| d.display().to_string())
+                .unwrap_or_else(|| "a drive".into());
+            return placeholder(format!(
+                "Nothing scanned yet. Press Open Folder or {drive} above to start a scan."
+            ))
             .into_any_element();
         }
         div()

@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DirScope — see what's filling your disk</title>
+<meta name="description" content="DirScope is a free, open-source disk usage explorer for Windows and Linux. Scan a drive, see what's biggest, delete it.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --page: #eef0f7;
+    --ink: #1a1f36;
+    --ink-soft: #4a5170;
+    --rule: #d6d9e6;
+    --app-bg: #1e1f22;
+    --app-panel: #2b2d30;
+    --app-border: #3c3f44;
+    --app-text: #dfe1e5;
+    --app-dim: #8c9099;
+    --amber: #f5a524;
+    --coral: #f26d6d;
+    --teal: #34c9c4;
+    --peri: #6b8cff;
+    --accent: #3a49c9;
+    --accent-ink: #ffffff;
+    --radius-lg: 14px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--page);
+    color: var(--ink);
+    font-family: "Schibsted Grotesk", system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+  }
+  a { color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--amber); outline-offset: 3px; border-radius: 4px; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+
+  /* ---- top bar ---- */
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 22px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 19px; color: var(--ink); text-decoration: none; }
+  .brand img { width: 34px; height: 34px; }
+  .top nav { display: flex; gap: 22px; font-weight: 500; }
+  .top nav a { color: var(--ink-soft); text-decoration: none; }
+  .top nav a:hover { color: var(--ink); }
+
+  /* ---- hero ---- */
+  .hero { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; padding: 48px 0 88px; }
+  h1 {
+    font-size: clamp(40px, 5.4vw, 66px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    font-weight: 800;
+    margin: 0 0 22px;
+    text-wrap: balance;
+  }
+  .lede { font-size: 19px; color: var(--ink-soft); max-width: 34ch; margin: 0 0 32px; }
+  .downloads { display: flex; flex-wrap: wrap; gap: 12px; }
+  .btn {
+    display: inline-flex; flex-direction: column; gap: 1px;
+    padding: 12px 20px; border-radius: var(--radius-sm);
+    text-decoration: none; font-weight: 600; font-size: 16px; line-height: 1.25;
+    border: 2px solid var(--ink);
+    color: var(--ink); background: transparent;
+  }
+  .btn small { font-weight: 400; font-size: 13px; opacity: .75; }
+  .btn.primary { background: var(--ink); color: #fff; }
+  .btn:hover { transform: translateY(-1px); }
+  .fine { margin-top: 18px; font-size: 14px; color: var(--ink-soft); }
+
+  /* ---- the replay window ---- */
+  .app {
+    background: var(--app-bg);
+    color: var(--app-text);
+    border-radius: var(--radius-lg);
+    box-shadow: 0 30px 60px -20px rgba(26, 31, 54, .45), 0 0 0 1px rgba(26, 31, 54, .08);
+    overflow: hidden;
+    font-size: 14px;
+    /* The real app's font, so the mock window reads as the actual app. */
+    font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  }
+  .app-title { display: flex; align-items: center; gap: 8px; padding: 10px 14px; background: #19191b; color: var(--app-dim); font-size: 13px; }
+  .app-title img { width: 16px; height: 16px; }
+  .app-toolbar { display: flex; gap: 6px; padding: 10px 14px; background: var(--app-panel); border-bottom: 1px solid var(--app-border); }
+  .chip { padding: 4px 10px; border: 1px solid var(--app-border); border-radius: 6px; font-size: 13px; white-space: nowrap; }
+  .chip.blue { background: #3574f0; border-color: #3574f0; color: #fff; }
+  .chip.replay { margin-left: auto; background: transparent; color: var(--app-text); font: inherit; font-size: 13px; cursor: pointer; }
+  .chip.replay:hover { border-color: var(--app-dim); }
+  .cols, .row { display: grid; grid-template-columns: minmax(0, 1fr) 84px 120px 52px; gap: 12px; align-items: center; padding: 0 14px; }
+  .cols { height: 30px; font-size: 12px; color: var(--app-dim); border-bottom: 1px solid var(--app-border); background: var(--app-panel); }
+  .cols span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .cols span:nth-child(2), .cols span:nth-child(4) { text-align: right; }
+  .rows { position: relative; height: calc(30px * 8); }
+  .row {
+    position: absolute; left: 0; right: 0; height: 30px;
+    transition: transform .7s cubic-bezier(.2, .8, .2, 1), opacity .3s;
+  }
+  .row:nth-child(even) { background: #232427; }
+  .row .name { display: flex; align-items: center; gap: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .row .name i { width: 14px; height: 11px; border-radius: 2px; background: #e8b04a; flex: none; }
+  .row.root .name i { background: #e8b04a; }
+  .row .size { text-align: right; }
+  .row .pct { text-align: right; color: var(--app-dim); }
+  .bar { height: 9px; background: #3a3d42; border-radius: 3px; overflow: hidden; }
+  .bar b { display: block; height: 100%; width: 0; border-radius: 3px; transition: width .7s cubic-bezier(.2, .8, .2, 1); }
+  .app-status { display: flex; justify-content: space-between; gap: 12px; padding: 7px 14px; font-size: 12px; background: var(--app-panel); border-top: 1px solid var(--app-border); }
+  .app-status span:last-child { color: var(--app-dim); }
+
+  /* ---- sections ---- */
+  section { padding: 72px 0; border-top: 1px solid var(--rule); }
+  h2 { font-size: clamp(28px, 3.2vw, 38px); letter-spacing: -0.02em; line-height: 1.1; margin: 0 0 14px; font-weight: 800; }
+  .split { display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); gap: 56px; align-items: start; }
+  .intro { color: var(--ink-soft); max-width: 36ch; margin: 0; }
+  .features { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 34px 40px; }
+  .features h3 { font-size: 19px; margin: 0 0 6px; font-weight: 600; letter-spacing: -0.01em; }
+  .features p { margin: 0; color: var(--ink-soft); }
+  .shot { margin: 56px 0 0; }
+  .shot img { display: block; width: 100%; height: auto; border-radius: var(--radius-lg); box-shadow: 0 24px 50px -24px rgba(26, 31, 54, .5); }
+  .shot figcaption { margin-top: 12px; font-size: 14px; color: var(--ink-soft); }
+
+  .keys { width: 100%; border-collapse: collapse; }
+  .keys td { padding: 12px 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .keys td:first-child { width: 46%; padding-right: 20px; }
+  kbd {
+    display: inline-block; min-width: 1.9em; padding: 2px 8px; margin: 2px 2px 2px 0;
+    font: 600 14px/1.4 "Schibsted Grotesk", system-ui, sans-serif; text-align: center;
+    background: #fff; border: 1px solid var(--rule); border-bottom-width: 3px; border-radius: 6px;
+  }
+
+  pre {
+    margin: 18px 0 0; padding: 18px 20px; overflow-x: auto;
+    background: var(--ink); color: #e9ebf5; border-radius: var(--radius-sm);
+    font: 14px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  .build p { color: var(--ink-soft); max-width: 60ch; }
+
+  footer { padding: 40px 0 56px; border-top: 1px solid var(--rule); color: var(--ink-soft); font-size: 15px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+
+  /* ---- responsive ---- */
+  @media (max-width: 900px) {
+    /* minmax(0, …) lets the column shrink below wide content like code lines. */
+    .hero, .split { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+    .hero { padding-top: 24px; }
+  }
+  @media (max-width: 620px) {
+    body { font-size: 16px; }
+    .wrap { padding: 0 16px; }
+    .top nav a.hide-sm { display: none; }
+    .features { grid-template-columns: minmax(0, 1fr); }
+    .app-toolbar { overflow: hidden; }
+    .cols, .row { grid-template-columns: minmax(0, 1fr) 74px 70px; gap: 10px; }
+    .cols span:nth-child(4), .row .pct { display: none; }
+    .chip.hide-sm { display: none; }
+    .keys td:first-child { width: 50%; }
+    section { padding: 56px 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .row, .bar b, .btn { transition: none !important; }
+    .btn:hover { transform: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="brand" href="#"><img src="icon.svg" alt="">DirScope</a>
+    <nav>
+      <a href="#features" class="hide-sm">Features</a>
+      <a href="#keys" class="hide-sm">Shortcuts</a>
+      <a href="https://github.com/rft0/dirscope">GitHub</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <h1>See what's filling your disk. Then delete it.</h1>
+        <p class="lede">DirScope scans a drive with every CPU core and lists every folder biggest first, so the space hogs are always at the top.</p>
+        <div class="downloads" id="downloads">
+          <a class="btn primary" data-os="windows" href="https://github.com/rft0/dirscope/releases/latest/download/dirscope-windows-x86_64.zip">
+            Download for Windows <small>Windows 10 and 11, 64-bit, .zip</small>
+          </a>
+          <a class="btn" data-os="linux" href="https://github.com/rft0/dirscope/releases/latest/download/dirscope-linux-x86_64.tar.gz">
+            Download for Linux <small>x86-64, Wayland or X11, .tar.gz</small>
+          </a>
+        </div>
+        <p class="fine">Version 1.0.0. Free and open source under the MIT license.</p>
+      </div>
+
+      <div class="app" aria-label="Animation of DirScope scanning a user folder">
+        <div class="app-title"><img src="icon.svg" alt="">DirScope</div>
+        <div class="app-toolbar" aria-hidden="true">
+          <span class="chip blue">Open Folder</span>
+          <span class="chip">C:\</span>
+          <span class="chip hide-sm">Show in Explorer</span>
+          <button class="chip replay" id="replay" type="button">Replay scan</button>
+        </div>
+        <div class="cols" aria-hidden="true"><span>Name</span><span>Size</span><span>Share of parent</span><span>%</span></div>
+        <div class="rows" id="rows"></div>
+        <div class="app-status" aria-live="polite"><span id="status">Scanning…</span><span>C:\Users\you</span></div>
+      </div>
+    </div>
+
+    <section id="features">
+      <div class="split">
+        <div>
+          <h2>Built for the moment your drive turns red</h2>
+          <p class="intro">Open it, press your drive, and the answer is on screen before you've finished wondering where the space went.</p>
+        </div>
+        <ul class="features">
+          <li>
+            <h3>Fast, parallel scanning</h3>
+            <p>Every core walks the folder tree at once. Live counters show files, folders and bytes as they're found, and Esc stops a scan early.</p>
+          </li>
+          <li>
+            <h3>Biggest first, everywhere</h3>
+            <p>Each level is sorted by size, with a bar and a percentage showing how much of its parent folder it takes up.</p>
+          </li>
+          <li>
+            <h3>Delete without rescanning</h3>
+            <p>Send something to the Recycle Bin or delete it for good. Every parent folder's total updates on the spot.</p>
+          </li>
+          <li>
+            <h3>Sees the protected folders too</h3>
+            <p>On Windows, DirScope offers to restart as administrator so Program Files, Windows and other users' folders are counted in full.</p>
+          </li>
+        </ul>
+      </div>
+      <figure class="shot">
+        <img src="screenshot.png" width="1375" height="988" alt="DirScope showing C:\Program Files: Unity at 15.2 GB is expanded at the top, followed by Microsoft Visual Studio, KiCad and Android, each with a size bar.">
+        <figcaption>Scanning C:\Program Files: 259,348 files counted in a third of a second.</figcaption>
+      </figure>
+    </section>
+
+    <section id="keys">
+      <div class="split">
+        <div>
+          <h2>Keep your hands on the keyboard</h2>
+          <p class="intro">Every action has a key, so you can work down a full drive without reaching for the mouse.</p>
+        </div>
+        <table class="keys">
+          <tbody>
+            <tr><td><kbd>↑</kbd><kbd>↓</kbd> <kbd>PgUp</kbd><kbd>PgDn</kbd></td><td>Move through the list</td></tr>
+            <tr><td><kbd>→</kbd><kbd>←</kbd></td><td>Open or close a folder, or jump to its first item or its parent</td></tr>
+            <tr><td><kbd>Enter</kbd> or double-click</td><td>Open or close the selected folder</td></tr>
+            <tr><td><kbd>Del</kbd></td><td>Delete the selected item (asks first)</td></tr>
+            <tr><td><kbd>F5</kbd></td><td>Scan again (scans C:\ if nothing is open yet)</td></tr>
+            <tr><td><kbd>Ctrl</kbd> <kbd>O</kbd></td><td>Choose a folder to scan</td></tr>
+            <tr><td><kbd>Esc</kbd></td><td>Stop the current scan</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="build" id="build">
+      <div class="split">
+        <div>
+          <h2>Build it yourself</h2>
+          <p class="intro">DirScope is written in Rust with gpui, the UI framework behind the Zed editor.</p>
+        </div>
+        <div>
+          <p>You need a recent stable Rust toolchain. On Debian or Ubuntu, install the system libraries first:</p>
+          <pre>sudo apt install pkg-config libxkbcommon-dev libxkbcommon-x11-dev \
+  libwayland-dev libfontconfig1-dev libfreetype6-dev libx11-xcb-dev \
+  libxcb1-dev libvulkan-dev libssl-dev libzstd-dev</pre>
+          <p>Then clone and run it:</p>
+          <pre>git clone https://github.com/rft0/dirscope
+cd dirscope
+cargo run --release</pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <span>DirScope is MIT licensed.</span>
+    <a href="https://github.com/rft0/dirscope">Source code and issues on GitHub</a>
+  </footer>
+</div>
+
+<script>
+  // Put the visitor's platform first.
+  (function () {
+    const linux = /Linux|X11/.test(navigator.userAgent) && !/Android/.test(navigator.userAgent);
+    if (!linux) return;
+    const box = document.getElementById("downloads");
+    const [win, lin] = [box.querySelector('[data-os="windows"]'), box.querySelector('[data-os="linux"]')];
+    win.classList.remove("primary"); lin.classList.add("primary");
+    box.prepend(lin);
+  })();
+
+  // The scan replay: folders appear in discovery order while counters run,
+  // then settle into biggest-first order with their share-of-parent bars.
+  const folders = [
+    { name: "AppData",       gb: 19.6, color: "var(--peri)" },
+    { name: "Steam Library", gb: 212.0, color: "var(--coral)" },
+    { name: "Documents",     gb: 3.2,  color: "var(--peri)" },
+    { name: "Downloads",     gb: 61.4, color: "var(--amber)" },
+    { name: "Videos",        gb: 27.9, color: "var(--teal)" },
+    { name: "projects",      gb: 38.2, color: "var(--teal)" },
+    { name: "Docker",        gb: 14.1, color: "var(--peri)" },
+  ];
+  const total = folders.reduce((s, f) => s + f.gb, 0);
+  const ROW = 30;
+  const rowsEl = document.getElementById("rows");
+  const statusEl = document.getElementById("status");
+  const fmt = (gb) => gb >= 1 ? gb.toFixed(1) + " GB" : Math.round(gb * 1024) + " MB";
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let timers = [];
+
+  function el(name, size, frac, color, pctText, root) {
+    const r = document.createElement("div");
+    r.className = "row" + (root ? " root" : "");
+    r.innerHTML =
+      `<span class="name">${root ? "" : "&nbsp;&nbsp;&nbsp;"}<i></i>${name}</span>` +
+      `<span class="size">${size}</span>` +
+      `<span class="bar"><b style="background:${color}"></b></span>` +
+      `<span class="pct">${pctText}</span>`;
+    return r;
+  }
+
+  function play() {
+    timers.forEach(clearTimeout); timers = [];
+    rowsEl.innerHTML = "";
+    const root = el("C:\\Users\\you", "0 B", 1, "var(--coral)", "", true);
+    root.style.transform = "translateY(0)";
+    rowsEl.append(root);
+    const nodes = folders.map((f, i) => {
+      const r = el(f.name, "…", 0, f.color, "", false);
+      r.style.transform = `translateY(${(i + 1) * ROW}px)`;
+      r.style.opacity = reduce ? 1 : 0;
+      rowsEl.append(r);
+      return r;
+    });
+
+    const finish = () => {
+      root.querySelector(".size").textContent = fmt(total);
+      root.querySelector(".pct").textContent = "100%";
+      root.querySelector(".bar b").style.width = "100%";
+      const order = folders.map((f, i) => i).sort((a, b) => folders[b].gb - folders[a].gb);
+      order.forEach((i, rank) => {
+        const r = nodes[i], f = folders[i], frac = f.gb / total;
+        r.style.opacity = 1;
+        r.style.transform = `translateY(${(rank + 1) * ROW}px)`;
+        r.querySelector(".size").textContent = fmt(f.gb);
+        r.querySelector(".pct").textContent = (frac * 100).toFixed(1) + "%";
+        r.querySelector(".bar b").style.width = (frac * 100) + "%";
+      });
+      // Re-stripe by final position.
+      order.forEach((i, rank) => nodes[i].style.background = rank % 2 === 0 ? "#232427" : "transparent");
+      statusEl.textContent = `${fmt(total)} in 412,906 files, 61,233 folders. Done in 2.4s`;
+    };
+
+    if (reduce) { finish(); return; }
+
+    const steps = 24, dur = 2400;
+    for (let s = 1; s <= steps; s++) {
+      timers.push(setTimeout(() => {
+        const t = s / steps;
+        const files = Math.round(412906 * t);
+        statusEl.textContent = `Scanning… ${files.toLocaleString("en-US")} files, ${fmt(total * t)}`;
+        root.querySelector(".size").textContent = fmt(total * t);
+        nodes.forEach((r, i) => {
+          if (t > i / folders.length) r.style.opacity = 1;
+        });
+      }, (dur / steps) * s));
+    }
+    timers.push(setTimeout(finish, dur + 150));
+  }
+
+  document.getElementById("replay").addEventListener("click", play);
+  play();
+</script>
+</body>
+</html>

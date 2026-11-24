@@ -6,6 +6,8 @@ A fast disk usage explorer for Windows and Linux, written in Rust with
 [gpui](https://github.com/zed-industries/zed/tree/main/crates/gpui) (the UI framework behind the Zed editor).
 Scan a drive or folder, see at a glance what is taking up space, and delete it.
 
+![DirScope scanning C:\Program Files](docs/screenshot.png)
+
 ## Features
 
 - **Fast parallel scan** using every CPU core, with live file, folder and byte counters (Esc cancels)
