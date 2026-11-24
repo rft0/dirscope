@@ -932,6 +932,8 @@ fn main() {
                     ..Default::default()
                 }),
                 focus: true,
+                // Matches assets/linux/dirscope.desktop so Linux docks show the icon.
+                app_id: Some("dirscope".into()),
                 ..Default::default()
             },
             |window, cx| {

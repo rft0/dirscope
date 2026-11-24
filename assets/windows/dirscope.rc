@@ -1,0 +1,28 @@
+// ID 1: Explorer uses it for the .exe, and gpui loads it for the window and taskbar.
+1 ICON "assets/windows/dirscope.ico"
+
+1 VERSIONINFO
+FILEVERSION 1,0,0,0
+PRODUCTVERSION 1,0,0,0
+FILEOS 0x40004
+FILETYPE 0x1
+BEGIN
+  BLOCK "StringFileInfo"
+  BEGIN
+    BLOCK "040904B0"
+    BEGIN
+      VALUE "CompanyName", "rft0"
+      VALUE "FileDescription", "DirScope"
+      VALUE "FileVersion", "1.0.0"
+      VALUE "InternalName", "dirscope"
+      VALUE "LegalCopyright", "MIT License"
+      VALUE "OriginalFilename", "dirscope.exe"
+      VALUE "ProductName", "DirScope"
+      VALUE "ProductVersion", "1.0.0"
+    END
+  END
+  BLOCK "VarFileInfo"
+  BEGIN
+    VALUE "Translation", 0x409, 1200
+  END
+END

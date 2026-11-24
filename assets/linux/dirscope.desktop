@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=DirScope
+GenericName=Disk Usage Explorer
+Comment=Scan folders, find what's big, delete it
+Exec=dirscope %f
+Icon=dirscope
+Terminal=false
+Categories=Utility;System;FileTools;
+Keywords=disk;usage;space;size;folder;
+StartupWMClass=dirscope

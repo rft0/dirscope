@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/icon.svg" width="112" alt="DirScope icon"></p>
+
 # DirScope
 
 A fast disk usage explorer for Windows and Linux, written in Rust with
@@ -23,6 +25,14 @@ Grab the latest build from the [Releases](https://github.com/rft0/dirscope/relea
 | Linux (x64, glibc 2.35+) | `dirscope-linux-x86_64.tar.gz` |
 
 On Linux the app needs a Vulkan-capable graphics driver (Mesa is fine) and either Wayland or X11.
+To add it to your app launcher:
+
+```
+tar -xzf dirscope-linux-x86_64.tar.gz && cd dirscope
+install -Dm755 dirscope ~/.local/bin/dirscope
+install -Dm644 dirscope.png ~/.local/share/icons/hicolor/512x512/apps/dirscope.png
+install -Dm644 dirscope.desktop ~/.local/share/applications/dirscope.desktop
+```
 
 You can also pass a folder to scan on the command line:
 

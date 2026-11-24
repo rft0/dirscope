@@ -63,8 +63,10 @@ jobs:
       - name: Package (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir dist
-          tar -czf dist/${{ matrix.archive }} -C target/release dirscope -C "$GITHUB_WORKSPACE" README.md LICENSE
+          mkdir -p dist pkg/dirscope
+          cp target/release/dirscope README.md LICENSE \
+             assets/linux/dirscope.desktop assets/linux/dirscope.png pkg/dirscope/
+          tar -czf dist/${{ matrix.archive }} -C pkg dirscope
 
       - uses: actions/upload-artifact@v4
         with:
