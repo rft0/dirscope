@@ -1,0 +1,30 @@
+# DirScope
+
+> DirScope is a free, open-source (MIT) disk usage analyzer for Windows and Linux. It scans a drive or folder in parallel using every CPU core, lists every folder and file sorted biggest first with its share of the parent folder, and lets the user delete items to the Recycle Bin/trash or permanently. It is a lightweight alternative to TreeSize, WinDirStat and similar tools, written in Rust with the gpui UI framework.
+
+Key facts:
+
+- Current version: 1.0.0
+- Platforms: Windows 10 and 11 (x64), Linux x86-64 (glibc 2.35+, Wayland or X11, needs a Vulkan driver)
+- Price: free; license: MIT
+- Install: download a zip (Windows) or tar.gz (Linux) from GitHub Releases and run the `dirscope` executable; no installer
+- Usage: press a drive button (e.g. C:\) or Open Folder to scan; a folder path can also be passed on the command line (`dirscope C:\Users`)
+- Deleting: select an item and press Del; DirScope asks whether to move it to the Recycle Bin or delete it permanently, then updates all parent totals without rescanning
+- Windows only: offers to restart as administrator so protected folders (Windows, Program Files, other users) are fully counted
+- Symlinks and junctions are skipped, so nothing is counted twice
+
+## Downloads
+
+- [Latest release](https://github.com/rft0/dirscope/releases/latest): release notes and all files
+- [Windows x64 (.zip)](https://github.com/rft0/dirscope/releases/latest/download/dirscope-windows-x86_64.zip)
+- [Linux x86-64 (.tar.gz)](https://github.com/rft0/dirscope/releases/latest/download/dirscope-linux-x86_64.tar.gz)
+
+## Docs
+
+- [README](https://github.com/rft0/dirscope/blob/master/README.md): features, keyboard shortcuts, Linux launcher setup, building from source
+- [Website](https://rft0.github.io/dirscope/): overview and screenshot
+
+## Optional
+
+- [Source code](https://github.com/rft0/dirscope): Rust source, issues and CI
+- [License](https://github.com/rft0/dirscope/blob/master/LICENSE): MIT

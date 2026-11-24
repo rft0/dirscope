@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://rft0.github.io/dirscope/sitemap.xml
